@@ -48,6 +48,124 @@ Example:
 MONGO_URI=mongodb+srv://<username>:<password>@<cluster-url>/<database>?retryWrites=true&w=majority
 ```
 
+## Database design overview
+
+The current MongoDB schema is centered around fleet operations and uses references between collections. The main entities and relationships are shown below.
+
+```mermaid
+erDiagram
+    USER ||--o{ VEHICLE : creates
+    USER ||--o{ DRIVER : creates
+    USER ||--o{ TRIP : creates
+    USER ||--o{ MAINTENANCE_LOG : creates
+    USER ||--o{ FUEL_LOG : records
+    USER ||--o{ EXPENSE : records
+
+    VEHICLE ||--o{ TRIP : assigned_to
+    VEHICLE ||--o{ MAINTENANCE_LOG : has
+    VEHICLE ||--o{ FUEL_LOG : has
+    VEHICLE ||--o{ EXPENSE : has
+
+    DRIVER ||--o{ TRIP : assigned_to
+
+    TRIP ||--o{ FUEL_LOG : linked_to
+    TRIP ||--o{ EXPENSE : linked_to
+
+    USER {
+        ObjectId _id
+        string name
+        string email
+        string password
+        string role
+        boolean isActive
+    }
+
+    VEHICLE {
+        ObjectId _id
+        string registrationNumber
+        string nameOrModel
+        string type
+        number maxLoadCapacityKg
+        number odometerKm
+        number acquisitionCost
+        string region
+        string status
+        ObjectId createdBy
+    }
+
+    DRIVER {
+        ObjectId _id
+        string name
+        string licenseNumber
+        string licenseCategory
+        date licenseExpiryDate
+        string contactNumber
+        number safetyScore
+        string status
+        ObjectId createdBy
+    }
+
+    TRIP {
+        ObjectId _id
+        string tripNumber
+        string source
+        string destination
+        ObjectId vehicle
+        ObjectId driver
+        number cargoWeightKg
+        number plannedDistanceKm
+        number actualDistanceKm
+        date plannedStartAt
+        date estimatedArrivalAt
+        date dispatchedAt
+        date completedAt
+        date cancelledAt
+        number startOdometerKm
+        number endOdometerKm
+        number fuelConsumedLiters
+        number revenue
+        string status
+        ObjectId createdBy
+    }
+
+    MAINTENANCE_LOG {
+        ObjectId _id
+        ObjectId vehicle
+        string maintenanceType
+        string description
+        number cost
+        number odometerKm
+        date openedAt
+        date closedAt
+        string status
+        ObjectId createdBy
+        ObjectId closedBy
+    }
+
+    FUEL_LOG {
+        ObjectId _id
+        ObjectId vehicle
+        ObjectId trip
+        date date
+        number liters
+        number cost
+        number odometerKm
+        string fuelStation
+        ObjectId recordedBy
+    }
+
+    EXPENSE {
+        ObjectId _id
+        ObjectId vehicle
+        ObjectId trip
+        string category
+        number amount
+        date expenseDate
+        string description
+        ObjectId recordedBy
+    }
+```
+
 ## Running the application
 
 ### Start the backend
