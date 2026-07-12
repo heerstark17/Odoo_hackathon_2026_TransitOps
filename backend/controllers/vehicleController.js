@@ -4,6 +4,8 @@ const Trip = require("../models/Trip");
 const MaintenanceLog = require("../models/MaintenanceLog");
 
 const VEHICLE_STATUSES = ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"];
+const VEHICLE_TYPES = ["TRUCK", "VAN", "BUS"];
+const REGISTRATION_PATTERN = /^[A-Z]{2}\d{2}[A-Z]{1,3}\d{4}$/;
 const EDITABLE_FIELDS = [
   "registrationNumber",
   "nameOrModel",
@@ -40,14 +42,36 @@ const validateVehicle = (vehicle, { creating = false } = {}) => {
     if (missing.length) return `Missing required fields: ${missing.join(", ")}.`;
   }
 
-  for (const field of ["maxLoadCapacityKg", "odometerKm", "acquisitionCost"]) {
-    if (vehicle[field] !== undefined && (!Number.isFinite(Number(vehicle[field])) || Number(vehicle[field]) < 0)) {
-      return `${field} must be a non-negative number.`;
+  if (vehicle.registrationNumber !== undefined) {
+    const registrationNumber = String(vehicle.registrationNumber).trim().toUpperCase();
+    if (!REGISTRATION_PATTERN.test(registrationNumber)) {
+      return "Registration number must use a valid format, for example MH12TR1001.";
     }
   }
 
-  if (vehicle.maxLoadCapacityKg !== undefined && Number(vehicle.maxLoadCapacityKg) < 1) {
-    return "maxLoadCapacityKg must be at least 1.";
+  if (vehicle.nameOrModel !== undefined) {
+    const nameOrModel = String(vehicle.nameOrModel).trim();
+    if (nameOrModel.length < 3 || nameOrModel.length > 80 || /(.)\1{2,}/i.test(nameOrModel)) {
+      return "Vehicle name/model must be 3–80 characters and cannot be repeated filler text.";
+    }
+  }
+
+  if (vehicle.type !== undefined && !VEHICLE_TYPES.includes(String(vehicle.type).trim().toUpperCase())) {
+    return `type must be one of: ${VEHICLE_TYPES.join(", ")}.`;
+  }
+
+  const numericRules = {
+    maxLoadCapacityKg: [100, 100000],
+    odometerKm: [0, 5000000],
+    acquisitionCost: [50000, 100000000],
+  };
+  for (const [field, [minimum, maximum]] of Object.entries(numericRules)) {
+    if (vehicle[field] !== undefined) {
+      const value = Number(vehicle[field]);
+      if (!Number.isFinite(value) || value < minimum || value > maximum) {
+        return `${field} must be between ${minimum.toLocaleString("en-IN")} and ${maximum.toLocaleString("en-IN")}.`;
+      }
+    }
   }
 
   return null;

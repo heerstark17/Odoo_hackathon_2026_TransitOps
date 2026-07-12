@@ -14,6 +14,8 @@ const userSchema = new mongoose.Schema(
     failedLoginAttempts: { type: Number, default: 0, min: 0 },
     lockedUntil: { type: Date, default: null },
     lastLoginAt: { type: Date, default: null },
+    passwordResetToken: { type: String, default: null, select: false },
+    passwordResetExpiresAt: { type: Date, default: null, select: false },
   },
   { timestamps: true },
 );

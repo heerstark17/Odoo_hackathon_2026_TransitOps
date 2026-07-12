@@ -12,7 +12,7 @@ const router = express.Router();
 const manageFuelLogs = authorize("FLEET_MANAGER", "DISPATCHER", "FINANCIAL_ANALYST");
 
 router.use(protect);
-router.route("/").get(getFuelLogs).post(manageFuelLogs, createFuelLog);
-router.route("/:id").get(getFuelLogById).patch(manageFuelLogs, updateFuelLog).delete(manageFuelLogs, deleteFuelLog);
+router.route("/").get(manageFuelLogs, getFuelLogs).post(manageFuelLogs, createFuelLog);
+router.route("/:id").get(manageFuelLogs, getFuelLogById).patch(manageFuelLogs, updateFuelLog).delete(manageFuelLogs, deleteFuelLog);
 
 module.exports = router;

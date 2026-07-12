@@ -14,8 +14,8 @@ const router = express.Router();
 const manageTrips = authorize("FLEET_MANAGER", "DISPATCHER");
 
 router.use(protect);
-router.route("/").get(getTrips).post(manageTrips, createTrip);
-router.get("/:id", getTripById);
+router.route("/").get(manageTrips, getTrips).post(manageTrips, createTrip);
+router.get("/:id", manageTrips, getTripById);
 router.patch("/:id", manageTrips, updateTrip);
 router.patch("/:id/dispatch", manageTrips, dispatchTrip);
 router.patch("/:id/complete", manageTrips, completeTrip);

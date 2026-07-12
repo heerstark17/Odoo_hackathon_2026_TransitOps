@@ -2,12 +2,19 @@ const mongoose = require("mongoose");
 
 const vehicleSchema = new mongoose.Schema(
   {
-    registrationNumber: { type: String, required: true, unique: true, trim: true, uppercase: true },
-    nameOrModel: { type: String, required: true, trim: true },
-    type: { type: String, required: true, trim: true, uppercase: true },
-    maxLoadCapacityKg: { type: Number, required: true, min: 1 },
-    odometerKm: { type: Number, required: true, min: 0 },
-    acquisitionCost: { type: Number, required: true, min: 0 },
+    registrationNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      uppercase: true,
+      match: [/^[A-Z]{2}\d{2}[A-Z]{1,3}\d{4}$/, "Enter a valid vehicle registration number."],
+    },
+    nameOrModel: { type: String, required: true, trim: true, minlength: 3, maxlength: 80 },
+    type: { type: String, required: true, trim: true, uppercase: true, enum: ["TRUCK", "VAN", "BUS"] },
+    maxLoadCapacityKg: { type: Number, required: true, min: 100, max: 100000 },
+    odometerKm: { type: Number, required: true, min: 0, max: 5000000 },
+    acquisitionCost: { type: Number, required: true, min: 50000, max: 100000000 },
     region: { type: String, trim: true, default: "Unassigned" },
     status: {
       type: String,

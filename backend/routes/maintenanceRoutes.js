@@ -12,8 +12,8 @@ const router = express.Router();
 const manageMaintenance = authorize("FLEET_MANAGER");
 
 router.use(protect);
-router.route("/").get(getMaintenanceLogs).post(manageMaintenance, createMaintenanceLog);
-router.get("/:id", getMaintenanceLogById);
+router.route("/").get(manageMaintenance, getMaintenanceLogs).post(manageMaintenance, createMaintenanceLog);
+router.get("/:id", manageMaintenance, getMaintenanceLogById);
 router.patch("/:id", manageMaintenance, updateMaintenanceLog);
 router.patch("/:id/close", manageMaintenance, closeMaintenanceLog);
 
