@@ -5,6 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const vehicleRoutes = require("./routes/vehicleRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/vehicles", vehicleRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.status(200).json({ message: "TransitOps API is running" });
