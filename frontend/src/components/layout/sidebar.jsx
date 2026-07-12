@@ -7,49 +7,93 @@ import {
   MdAltRoute,
   MdBuild,
   MdLocalGasStation,
-  MdReceiptLong,
   MdBarChart,
   MdMenu,
   MdClose,
+  MdSettings,
 } from "react-icons/md";
+import { useAuth } from "../../context/AuthContext";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", to: "/", icon: MdDashboard, end: true },
-  { label: "Vehicles", to: "/vehicles", icon: MdLocalShipping },
-  { label: "Drivers", to: "/drivers", icon: MdPeople },
-  { label: "Trips", to: "/trips", icon: MdAltRoute },
-  { label: "Maintenance", to: "/maintenance", icon: MdBuild },
-  { label: "Fuel Logs", to: "/fuel-logs", icon: MdLocalGasStation },
-  { label: "Expenses", to: "/expenses", icon: MdReceiptLong },
-  { label: "Reports", to: "/reports", icon: MdBarChart },
+  {
+    label: "Dashboard",
+    to: "/",
+    icon: MdDashboard,
+    end: true,
+    roles: ["FLEET_MANAGER", "DISPATCHER", "SAFETY_OFFICER", "FINANCIAL_ANALYST"],
+  },
+  {
+    label: "Fleet",
+    to: "/vehicles",
+    icon: MdLocalShipping,
+    roles: ["FLEET_MANAGER", "DISPATCHER"],
+  },
+  {
+    label: "Drivers",
+    to: "/drivers",
+    icon: MdPeople,
+    roles: ["FLEET_MANAGER", "DISPATCHER", "SAFETY_OFFICER"],
+  },
+  {
+    label: "Trips",
+    to: "/trips",
+    icon: MdAltRoute,
+    roles: ["FLEET_MANAGER", "DISPATCHER"],
+  },
+  {
+    label: "Maintenance",
+    to: "/maintenance",
+    icon: MdBuild,
+    roles: ["FLEET_MANAGER"],
+  },
+  {
+    label: "Fuel & Expenses",
+    to: "/fuel-logs",
+    icon: MdLocalGasStation,
+    roles: ["FLEET_MANAGER", "DISPATCHER", "FINANCIAL_ANALYST"],
+  },
+  {
+    label: "Analytics",
+    to: "/reports",
+    icon: MdBarChart,
+    roles: ["FLEET_MANAGER", "FINANCIAL_ANALYST"],
+  },
+  {
+    label: "Settings",
+    to: "/settings",
+    icon: MdSettings,
+    roles: ["FLEET_MANAGER"],
+  },
 ];
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
 
   const closeMobileMenu = () => setIsOpen(false);
+  const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(user?.role));
 
   const linkClasses = ({ isActive }) =>
     [
-      "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150",
+      "group flex items-center gap-3 border-l-2 px-3 py-2.5 text-sm font-medium transition-colors duration-150",
       isActive
-        ? "bg-slate-800 text-cyan-400 border-l-4 border-cyan-400 pl-2"
-        : "text-slate-300 hover:bg-slate-800/60 hover:text-white border-l-4 border-transparent pl-2",
+        ? "border-[var(--accent)] bg-white/10 pl-3 text-white"
+        : "border-transparent text-[#b7c5ba] hover:bg-white/5 hover:text-white",
     ].join(" ");
 
   return (
     <>
       {/* Mobile top bar toggle */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-[#0F172A] border-b border-slate-800 px-4 py-3">
+      <div className="surface-strong fixed top-0 left-0 right-0 z-40 flex items-center justify-between border-b border-[var(--border)] px-4 py-3 md:hidden">
         <div className="flex items-center gap-2">
-          <MdLocalShipping className="text-cyan-400" size={24} />
+          <MdLocalShipping className="text-[var(--accent)]" size={24} />
           <span className="text-white font-semibold tracking-wide">
             TransitOps
           </span>
         </div>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="text-slate-200 p-2 rounded-md hover:bg-slate-800"
+          className="rounded-md p-2 text-[var(--text-primary)] hover:bg-[var(--surface-muted)]"
           aria-label="Toggle sidebar"
         >
           {isOpen ? <MdClose size={24} /> : <MdMenu size={24} />}
@@ -67,29 +111,32 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside
         className={[
-          "fixed md:static top-0 left-0 z-40 h-full md:h-screen w-64",
-          "bg-[#0F172A] border-r border-slate-800 flex flex-col",
+          "fixed md:sticky md:top-0 top-0 left-0 z-40 h-full md:h-screen w-64 shrink-0",
+          "surface-strong border-r border-white/10 flex flex-col",
           "transform transition-transform duration-200 ease-in-out",
           "pt-16 md:pt-0",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full md:!translate-x-0",
         ].join(" ")}
       >
         {/* Logo section */}
-        <div className="hidden md:flex items-center gap-3 px-5 py-6 border-b border-slate-800">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10">
-            <MdLocalShipping className="text-cyan-400" size={22} />
+        <div className="hidden items-center gap-3 border-b border-white/10 px-5 py-6 md:flex">
+          <div className="flex h-10 w-10 items-center justify-center bg-[var(--accent)] text-white">
+            <MdLocalShipping size={22} />
           </div>
           <div>
             <p className="text-white font-bold leading-tight tracking-wide text-base">
               TransitOps
             </p>
-            <p className="text-slate-500 text-xs">Smart Transport Platform</p>
+            <p className="text-xs text-[#b7c5ba]">Smart Transport Platform</p>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {NAV_ITEMS.map(({ label, to, icon: Icon, end }) => (
+        <nav
+          aria-label="Primary navigation"
+          className="flex-1 space-y-1 overflow-y-auto px-3 py-4"
+        >
+          {visibleItems.map(({ label, to, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}

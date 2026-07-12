@@ -1,11 +1,11 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import Navbar from "./Navbar";
+import Sidebar from "./sidebar";
+import Navbar from "./navbar";
 
 const Layout = () => {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-slate-50">
+    <div className="app-shell flex h-screen w-full overflow-hidden">
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden md:ml-0">

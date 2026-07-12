@@ -1,207 +1,258 @@
-import React, { useState } from "react";
-import {
-  MdLocalShipping,
-  MdEmail,
-  MdLock,
-  MdVisibility,
-  MdVisibilityOff,
-  MdBadge,
-  MdAltRoute,
-  MdSpeed,
-  MdVerified,
-} from "react-icons/md";
-
-const ROLES = ["Fleet Manager", "Dispatcher", "Safety Officer", "Financial Analyst"];
-
-const HIGHLIGHTS = [
-  { icon: MdAltRoute, text: "Real-time trip dispatch & tracking" },
-  { icon: MdSpeed, text: "Live fleet utilization insights" },
-  { icon: MdVerified, text: "Driver compliance & safety scoring" },
+import { useState } from "react";
+import { MdEmail, MdLocalShipping, MdLock } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+const loginRoles = [
+  ["FLEET_MANAGER", "Fleet Manager"],
+  ["DISPATCHER", "Dispatcher"],
+  ["SAFETY_OFFICER", "Safety Officer"],
+  ["FINANCIAL_ANALYST", "Financial Analyst"],
 ];
-
-const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", role: "" });
+const registerRoles = loginRoles.slice(1);
+const platformCapabilities = [
+  ["Fleet visibility", "Track vehicles, availability and maintenance in real time."],
+  ["Trip control", "Plan assignments and keep every movement on schedule."],
+  ["Cost clarity", "Monitor fuel, expenses and operational performance."],
+  ["Safer operations", "Keep driver records and compliance in one place."],
+];
+export default function Login() {
+  const [mode, setMode] = useState("login");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "",
+    token: "",
+  });
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const [busy, setBusy] = useState(false);
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
+  const update = (key) => (event) =>
+    setForm((current) => ({ ...current, [key]: event.target.value }));
+  const submit = async (event) => {
+    event.preventDefault();
+    setBusy(true);
     setError("");
-
-    if (!form.email.trim() || !form.password.trim() || !form.role) {
-      setError("Please fill in all fields to continue.");
-      return;
+    try {
+      if (mode === "login") {
+        await login(form);
+        navigate("/");
+      } else if (mode === "register") {
+        await register(form);
+        navigate("/");
+      } else if (mode === "forgot") {
+        const { data } = await api.post("/auth/forgot-password", {
+          email: form.email,
+        });
+        setForm((current) => ({ ...current, token: data.resetToken || "" }));
+        setMode("reset");
+      } else {
+        const { data } = await api.post(`/auth/reset-password/${form.token}`, {
+          password: form.password,
+        });
+        localStorage.setItem("transitops_token", data.token);
+        window.location.assign("/");
+      }
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message ||
+          requestError.message ||
+          "Unable to complete this request.",
+      );
+    } finally {
+      setBusy(false);
     }
-
-    setIsSubmitting(true);
-    // Mock authentication only — no backend wired up.
-    setTimeout(() => {
-      setIsSubmitting(false);
-      console.log("Mock sign in:", form);
-    }, 800);
   };
-
   return (
-    <div className="flex min-h-screen w-full bg-slate-50">
-      {/* Left Side - Branding */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-[#0F172A] px-12 py-10 lg:flex">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
-
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10">
-            <MdLocalShipping className="text-cyan-400" size={22} />
+    <main className="min-h-screen bg-[var(--background)]">
+      <div className="grid min-h-screen w-full md:grid-cols-2">
+        <section className="bg-[#eee7dc] p-8 text-[#17241f] sm:p-12 lg:p-16">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center bg-[var(--accent)] text-white">
+              <MdLocalShipping />
+            </span>
+            <b>TransitOps</b>
           </div>
-          <div>
-            <p className="text-lg font-bold leading-tight text-white">TransitOps</p>
-            <p className="text-xs text-slate-400">Smart Transport Platform</p>
-          </div>
-        </div>
-
-        <div className="relative z-10 max-w-md">
-          <h2 className="text-3xl font-semibold leading-tight text-white">
-            Run your fleet with clarity, not chaos.
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-slate-400">
-            TransitOps brings vehicles, drivers, trips, and costs into a single
-            operations view — built for logistics teams that can't afford
-            downtime or guesswork.
-          </p>
-
-          <div className="mt-8 space-y-4">
-            {HIGHLIGHTS.map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/5">
-                  <Icon className="text-cyan-400" size={18} />
-                </div>
-                <span className="text-sm text-slate-300">{text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <p className="relative z-10 text-xs text-slate-500">
-          © 2026 TransitOps. All rights reserved.
-        </p>
-      </div>
-
-      {/* Right Side - Login Card */}
-      <div className="flex w-full flex-col items-center justify-center px-6 py-12 lg:w-1/2">
-        {/* Mobile brand */}
-        <div className="mb-8 flex items-center gap-3 lg:hidden">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10">
-            <MdLocalShipping className="text-cyan-600" size={22} />
-          </div>
-          <div>
-            <p className="text-lg font-bold leading-tight text-slate-800">TransitOps</p>
-            <p className="text-xs text-slate-500">Smart Transport Platform</p>
-          </div>
-        </div>
-
-        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-slate-800">Welcome back</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Sign in to access your fleet dashboard
-          </p>
-
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            {error && (
-              <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Email</label>
-              <div className="relative">
-                <MdEmail
-                  size={18}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange("email")}
-                  placeholder="you@company.com"
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition-colors focus:border-cyan-400 focus:bg-white focus:ring-2 focus:ring-cyan-100"
-                />
-              </div>
+          <div className="mt-20 max-w-xl">
+            <p className="page-kicker">Transit operations, connected</p>
+            <h1 className="font-display mt-4 text-5xl leading-none sm:text-6xl">
+              One-stop solution
+              <br />
+              for fleet management.
+            </h1>
+            <p className="mt-6 max-w-lg text-base leading-7 text-[#4c554f]">
+              Bring your vehicles, drivers, trips and costs together in one
+              clear operational workspace.
+            </p>
+            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+              {platformCapabilities.map(([title, description]) => (
+                <article
+                  key={title}
+                  className="border-l-2 border-[var(--accent)] bg-black/5 px-4 py-3"
+                >
+                  <h2 className="font-semibold">{title}</h2>
+                  <p className="mt-1 text-sm leading-5 text-[#4c554f]">
+                    {description}
+                  </p>
+                </article>
+              ))}
             </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Password</label>
-              <div className="relative">
-                <MdLock
-                  size={18}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={handleChange("password")}
-                  placeholder="••••••••"
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-700 placeholder-slate-400 outline-none transition-colors focus:border-cyan-400 focus:bg-white focus:ring-2 focus:ring-cyan-100"
-                />
+          </div>
+        </section>
+        <section className="surface-strong flex items-center p-8 sm:p-12 lg:p-16">
+          <div className="w-full max-w-md">
+          <h2 className="font-display text-4xl">
+            {mode === "login"
+              ? "Sign in to your account"
+              : mode === "register"
+                ? "Create an account"
+                : mode === "forgot"
+                  ? "Reset password"
+                  : "Choose a new password"}
+          </h2>
+          {error && (
+            <p className="status-alert mt-5 border px-3 py-2 text-sm">
+              {error}
+            </p>
+          )}
+          <form onSubmit={submit} className="mt-7 space-y-4">
+            {mode === "register" && (
+              <Field
+                label="Full name"
+                value={form.name}
+                onChange={update("name")}
+              />
+            )}{" "}
+            {mode !== "reset" && (
+              <Field
+                label="Email"
+                type="email"
+                icon={MdEmail}
+                value={form.email}
+                onChange={update("email")}
+              />
+            )}{" "}
+            {["login", "register"].includes(mode) && (
+              <label className="block text-sm">
+                Role
+                <select
+                  required
+                  value={form.role}
+                  onChange={update("role")}
+                  className="auth-input mt-1.5"
+                >
+                  {" "}
+                  <option value="">Select your role</option>
+                  {(mode === "login" ? loginRoles : registerRoles).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+            )}{" "}
+            {mode !== "forgot" && (
+              <Field
+                label={mode === "reset" ? "New password" : "Password"}
+                type="password"
+                icon={MdLock}
+                value={form.password}
+                onChange={update("password")}
+              />
+            )}{" "}
+            {mode === "reset" && (
+              <Field
+                label="Reset token"
+                value={form.token}
+                onChange={update("token")}
+              />
+            )}{" "}
+            {mode === "login" && (
+              <div className="flex justify-between text-xs">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                  />{" "}
+                  Remember me
+                </label>
                 <button
                   type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setMode("forgot")}
+                  className="text-[#ef9b7f]"
                 >
-                  {showPassword ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
+                  Forgot password?
                 </button>
               </div>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Role</label>
-              <div className="relative">
-                <MdBadge
-                  size={18}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <select
-                  value={form.role}
-                  onChange={handleChange("role")}
-                  className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-cyan-400 focus:bg-white focus:ring-2 focus:ring-cyan-100"
-                >
-                  <option value="">Select your role</option>
-                  {ROLES.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end">
-              <a href="#" className="text-xs font-medium text-cyan-600 hover:text-cyan-700">
-                Forgot Password?
-              </a>
-            </div>
-
+            )}
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-lg bg-cyan-500 py-2.5 text-sm font-medium text-white transition-colors hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={busy}
+              className="accent-button w-full rounded-md py-3 text-sm font-semibold disabled:opacity-60"
             >
-              {isSubmitting ? "Signing in..." : "Sign In"}
+              {busy
+                ? "Please wait…"
+                : mode === "login"
+                  ? "Sign In"
+                  : mode === "register"
+                    ? "Create account"
+                    : mode === "forgot"
+                      ? "Request reset"
+                      : "Reset password"}
             </button>
           </form>
-        </div>
-
-        <p className="mt-6 text-xs text-slate-400">
-          Mock authentication — no data leaves this session.
-        </p>
+          <div className="mt-6 text-center text-sm text-[#b7c5ba]">
+            {mode === "login" ? (
+              <>
+                Need an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setMode("register")}
+                  className="font-medium text-[#ef9b7f] hover:text-white"
+                >
+                  Register
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="font-medium text-[#ef9b7f] hover:text-white"
+                >
+                  Sign in
+                </button>
+              </>
+            )}
+          </div>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
-};
-
-export default Login;
+}
+function Field({ label, type = "text", value, onChange, icon: Icon }) {
+  return (
+    <label className="block text-sm">
+      {label}
+      <div className="relative mt-1.5">
+        {Icon && (
+          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-[#b7c5ba]" />
+        )}
+        <input
+          required
+          type={type}
+          value={value}
+          onChange={onChange}
+          className={`auth-input ${Icon ? "auth-input-with-icon" : ""}`}
+        />
+      </div>
+    </label>
+  );
+}

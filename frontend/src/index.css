@@ -1,11 +1,23 @@
-@import 'tailwindcss';
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
 
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #111827;
-  background-color: #f9fafb;
+  --background: #080b0d;
+  --surface: #11161a;
+  --surface-muted: #1a2025;
+  --surface-strong: #0c1013;
+  --border: #293238;
+  --border-strong: #46535b;
+  --text-primary: #f2f5f3;
+  --text-muted: #9aa5a9;
+  --accent: #d95d39;
+  --accent-strong: #af4427;
+  --accent-soft: #3b211c;
+  --signal: #2f7565;
+  --signal-soft: #153d34;
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--text-primary);
+  background: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -16,8 +28,123 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--background);
 }
-
 #root {
   min-height: 100vh;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+option {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.font-display {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1;
+}
+.app-shell {
+  background: var(--background);
+  color: var(--text-primary);
+}
+.surface {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.surface-muted {
+  background: var(--surface-muted);
+}
+.surface-strong {
+  background: var(--surface-strong);
+  color: var(--text-primary);
+}
+.page-kicker {
+  color: var(--accent-strong);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.page-title {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.accent-text {
+  color: var(--accent-strong);
+}
+.accent-button {
+  background: var(--accent);
+  color: #fffaf5;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+.accent-button:hover {
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+.input-control {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.input-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(217 93 57 / 0.13);
+}
+.auth-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.08);
+  padding: 0.78rem;
+  color: #fffaf5;
+  outline: none;
+}
+.auth-input-with-icon {
+  padding-left: 2.5rem;
+}
+.auth-input:focus {
+  border-color: #ef9b7f;
+  box-shadow: 0 0 0 3px rgb(239 155 127 / 0.15);
+}
+.auth-input option {
+  color: var(--text-primary);
+}
+.status-available {
+  background: #123d31;
+  color: #80dfbd;
+}
+.status-on-trip {
+  background: #182f4c;
+  color: #8dc5ff;
+}
+.status-active {
+  background: #493518;
+  color: #f1c66d;
+}
+.status-alert {
+  background: #482326;
+  color: #ff9a9e;
+}
+.status-neutral {
+  background: #252d33;
+  color: #b7c1c5;
 }

@@ -1,235 +1,239 @@
-import React from "react";
-import {
-  MdLocalShipping,
-  MdCheckCircleOutline,
-  MdAltRoute,
-  MdPeopleAlt,
-  MdBuild,
-  MdAttachMoney,
-  MdAddCircleOutline,
-  MdAddRoad,
-  MdEventAvailable,
-  MdArrowUpward,
-  MdArrowDownward,
-  MdFiberManualRecord,
-} from "react-icons/md";
+import { useEffect, useMemo, useState } from "react";
+import { MdAltRoute, MdBuild, MdDirectionsCar, MdPeople } from "react-icons/md";
+import api from "../api/axios";
 
-const KPI_CARDS = [
-  {
-    label: "Total Vehicles",
-    value: "142",
-    trend: "+4.2%",
-    trendUp: true,
-    icon: MdLocalShipping,
-    accent: "bg-cyan-500/10 text-cyan-600",
-  },
-  {
-    label: "Available Vehicles",
-    value: "89",
-    trend: "+1.8%",
-    trendUp: true,
-    icon: MdCheckCircleOutline,
-    accent: "bg-emerald-500/10 text-emerald-600",
-  },
-  {
-    label: "Active Trips",
-    value: "37",
-    trend: "+6.5%",
-    trendUp: true,
-    icon: MdAltRoute,
-    accent: "bg-indigo-500/10 text-indigo-600",
-  },
-  {
-    label: "Drivers On Duty",
-    value: "64",
-    trend: "-2.1%",
-    trendUp: false,
-    icon: MdPeopleAlt,
-    accent: "bg-amber-500/10 text-amber-600",
-  },
-  {
-    label: "Vehicles In Maintenance",
-    value: "9",
-    trend: "+0.9%",
-    trendUp: false,
-    icon: MdBuild,
-    accent: "bg-rose-500/10 text-rose-600",
-  },
-  {
-    label: "Monthly Expenses",
-    value: "₹8.4L",
-    trend: "+3.4%",
-    trendUp: false,
-    icon: MdAttachMoney,
-    accent: "bg-purple-500/10 text-purple-600",
-  },
-];
+const label = (status) => status.replace("_", " ");
 
-const FLEET_OVERVIEW = [
-  { label: "Available", count: 89, total: 142, color: "bg-emerald-500" },
-  { label: "On Trip", count: 37, total: 142, color: "bg-cyan-500" },
-  { label: "In Shop", count: 9, total: 142, color: "bg-amber-500" },
-  { label: "Retired", count: 7, total: 142, color: "bg-slate-400" },
-];
+export default function Dashboard() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState("");
+  const [filters, setFilters] = useState({ type: "", status: "", region: "" });
 
-const RECENT_ACTIVITY = [
-  {
-    id: 1,
-    text: "Trip #TR-2291 dispatched — Pune to Nagpur",
-    meta: "Vehicle MH-12-AB-3345 · Driver Rakesh Sharma",
-    time: "12 min ago",
-    color: "bg-cyan-500",
-  },
-  {
-    id: 2,
-    text: "Vehicle MH-14-CD-7712 moved to In Shop",
-    meta: "Scheduled brake inspection",
-    time: "48 min ago",
-    color: "bg-amber-500",
-  },
-  {
-    id: 3,
-    text: "Trip #TR-2287 completed — Mumbai to Surat",
-    meta: "Vehicle MH-04-GH-9021 · Driver Sunil Yadav",
-    time: "1 hr ago",
-    color: "bg-emerald-500",
-  },
-  {
-    id: 4,
-    text: "Driver Ramesh Patil license renewed",
-    meta: "New expiry: 14 Mar 2028",
-    time: "2 hr ago",
-    color: "bg-indigo-500",
-  },
-  {
-    id: 5,
-    text: "Fuel log added for MH-20-XY-5567",
-    meta: "142.5 L · ₹14,820",
-    time: "3 hr ago",
-    color: "bg-purple-500",
-  },
-];
+  useEffect(() => {
+    api
+      .get("/dashboard", { params: filters })
+      .then((response) => setData(response.data))
+      .catch((requestError) =>
+        setError(
+          requestError.response?.data?.message ||
+            "Could not load dashboard data.",
+        ),
+      );
+  }, [filters]);
 
-const QUICK_ACTIONS = [
-  {
-    label: "Add Vehicle",
-    icon: MdAddCircleOutline,
-    accent: "bg-cyan-500 hover:bg-cyan-600",
-  },
-  {
-    label: "Create Trip",
-    icon: MdAddRoad,
-    accent: "bg-indigo-500 hover:bg-indigo-600",
-  },
-  {
-    label: "Schedule Maintenance",
-    icon: MdEventAvailable,
-    accent: "bg-amber-500 hover:bg-amber-600",
-  },
-];
+  const vehicleTotal = useMemo(
+    () =>
+      Object.values(data?.vehicleStatus || {}).reduce(
+        (total, value) => total + value,
+        0,
+      ) || 1,
+    [data],
+  );
 
-const Dashboard = () => {
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-800">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Welcome back, Akash — here's what's happening with your fleet today.
-        </p>
+  if (error)
+    return <div className="status-alert border px-4 py-3 text-sm">{error}</div>;
+  if (!data)
+    return (
+      <div className="grid min-h-[60vh] place-items-center text-sm text-muted">
+        Loading your operations pulse…
       </div>
+    );
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {KPI_CARDS.map(({ label, value, trend, trendUp, icon: Icon, accent }) => (
-          <div
-            key={label}
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-          >
-            <div className="flex items-center justify-between">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${accent}`}>
-                <Icon size={20} />
-              </div>
-              <span
-                className={`flex items-center gap-0.5 text-xs font-medium ${
-                  trendUp ? "text-emerald-600" : "text-rose-600"
-                }`}
-              >
-                {trendUp ? <MdArrowUpward size={14} /> : <MdArrowDownward size={14} />}
-                {trend}
-              </span>
-            </div>
-            <p className="mt-3 text-2xl font-semibold text-slate-800">{value}</p>
-            <p className="mt-0.5 text-xs text-slate-500">{label}</p>
+  const k = data.kpis;
+  const kpis = [
+    {
+      label: "Fleet roster",
+      value: k.activeVehicles,
+      detail: "vehicles active",
+      icon: MdDirectionsCar,
+    },
+    {
+      label: "Ready to dispatch",
+      value: k.availableVehicles,
+      detail: "available now",
+      icon: MdAltRoute,
+    },
+    {
+      label: "Workshop queue",
+      value: k.vehiclesInMaintenance,
+      detail: "assets in service",
+      icon: MdBuild,
+    },
+    {
+      label: "Active trips",
+      value: k.activeTrips,
+      detail: "currently dispatched",
+      icon: MdAltRoute,
+    },
+    {
+      label: "Pending trips",
+      value: k.pendingTrips,
+      detail: "awaiting dispatch",
+      icon: MdAltRoute,
+    },
+    {
+      label: "Crew on duty",
+      value: k.driversOnDuty,
+      detail: "drivers signed in",
+      icon: MdPeople,
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <header className="grid gap-6 lg:grid-cols-[1.1fr_.9fr] lg:items-end">
+        <div>
+          <p className="page-kicker">Dispatch board · live</p>
+          <h1 className="page-title mt-2">Fleet command desk</h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
+            Read capacity at a glance, then move directly into the work that
+            needs attention.
+          </p>
+        </div>
+        <div className="surface-strong border-l-4 border-[var(--accent)] px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-[.16em] text-[#d9e5dc]">
+            Utilisation gauge
+          </p>
+          <div className="mt-2 flex items-end justify-between gap-4">
+            <p className="font-display text-6xl leading-none">
+              {k.fleetUtilization}%
+            </p>
+            <p className="max-w-32 text-right text-xs leading-5 text-[#c9d5cc]">
+              of the roster is deployed or working
+            </p>
           </div>
+          <div className="mt-4 h-1.5 bg-white/15">
+            <div
+              className="h-full bg-[var(--accent)]"
+              style={{ width: `${Math.min(k.fleetUtilization, 100)}%` }}
+            />
+          </div>
+        </div>
+      </header>
+
+      <div className="surface grid gap-3 p-4 sm:grid-cols-3">
+        {[
+          ["type", "Vehicle type", ["TRUCK", "VAN", "BUS"]],
+          ["status", "Status", ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"]],
+          ["region", "Region", ["NORTH", "SOUTH", "EAST", "WEST"]],
+        ].map(([key, placeholder, options]) => (
+          <label
+            key={key}
+            className="text-xs font-semibold uppercase tracking-wide text-muted"
+          >
+            {placeholder}
+            <select
+              value={filters[key]}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  [key]: event.target.value,
+                }))
+              }
+              className="input-control mt-1.5 rounded-md px-3 py-2 text-sm font-normal normal-case"
+            >
+              <option value="">All {placeholder.toLowerCase()}s</option>
+              {options.map((option) => (
+                <option key={option} value={option}>
+                  {option.replace("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
         ))}
       </div>
+      <section className="grid border-y border-[var(--border)] sm:grid-cols-2 xl:grid-cols-7">
+        {kpis.map(({ label: itemLabel, value, detail, icon: Icon }) => (
+          <article
+            key={itemLabel}
+            className="border-b border-[var(--border)] border-t-2 border-t-[var(--accent)] px-4 py-5 last:border-b-0 sm:[&:nth-child(odd)]:border-r xl:border-b-0 xl:border-r xl:last:border-r-0 [&:nth-child(2)]:border-t-[var(--signal)] [&:nth-child(3)]:border-t-amber-400 [&:nth-child(4)]:border-t-blue-400 [&:nth-child(5)]:border-t-violet-400 [&:nth-child(6)]:border-t-rose-400 [&:nth-child(7)]:border-t-teal-400"
+          >
+            <div className="flex items-center justify-between text-muted">
+              <span className="text-xs font-semibold uppercase tracking-[.12em]">
+                {itemLabel}
+              </span>
+              <Icon size={19} />
+            </div>
+            <p className="font-display mt-4 text-5xl leading-none">{value}</p>
+            <p className="mt-2 text-xs text-muted">{detail}</p>
+          </article>
+        ))}
+      </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Fleet Overview */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-1">
-          <h2 className="text-sm font-semibold text-slate-800">Fleet Overview</h2>
-          <p className="mt-0.5 text-xs text-slate-500">Current status breakdown</p>
-
-          <div className="mt-5 space-y-4">
-            {FLEET_OVERVIEW.map(({ label, count, total, color }) => (
-              <div key={label}>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-slate-600">{label}</span>
-                  <span className="text-slate-400">{count} / {total}</span>
+      <div className="grid gap-6 xl:grid-cols-[.82fr_1.45fr]">
+        <section className="surface p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="page-kicker">Yard state</p>
+              <h2 className="font-display mt-1 text-3xl">
+                Vehicle availability
+              </h2>
+            </div>
+            <span className="text-sm text-muted">{vehicleTotal} total</span>
+          </div>
+          <div className="mt-7 space-y-5">
+            {Object.entries(data.vehicleStatus).map(([key, value]) => (
+              <div key={key}>
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="font-medium capitalize">{label(key)}</span>
+                  <span className="text-muted">{value} units</span>
                 </div>
-                <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="mt-2 h-2 bg-[var(--surface-muted)]">
                   <div
-                    className={`h-full rounded-full ${color}`}
-                    style={{ width: `${(count / total) * 100}%` }}
+                    className="h-full bg-[var(--signal)]"
+                    style={{ width: `${(value / vehicleTotal) * 100}%` }}
                   />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Recent Activity */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-          <h2 className="text-sm font-semibold text-slate-800">Recent Activity</h2>
-          <p className="mt-0.5 text-xs text-slate-500">Latest fleet operations</p>
-
-          <ul className="mt-5 space-y-4">
-            {RECENT_ACTIVITY.map((activity) => (
-              <li key={activity.id} className="flex items-start gap-3">
-                <span className={`mt-1.5 flex h-2 w-2 shrink-0 rounded-full ${activity.color}`} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-700">
-                    {activity.text}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-400">{activity.meta}</p>
-                </div>
-                <span className="shrink-0 text-xs text-slate-400">{activity.time}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-800">Quick Actions</h2>
-        <p className="mt-0.5 text-xs text-slate-500">Common operations</p>
-
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {QUICK_ACTIONS.map(({ label, icon: Icon, accent }) => (
-            <button
-              key={label}
-              className={`flex items-center justify-center gap-2 rounded-lg ${accent} px-4 py-3 text-sm font-medium text-white transition-colors`}
-            >
-              <Icon size={18} />
-              {label}
-            </button>
-          ))}
-        </div>
+        <section className="surface overflow-hidden">
+          <div className="flex items-end justify-between border-b border-[var(--border)] px-6 py-5">
+            <div>
+              <p className="page-kicker">Manifest</p>
+              <h2 className="font-display mt-1 text-3xl">Latest movements</h2>
+            </div>
+            <span className="text-xs font-medium text-muted">
+              {data.recentTrips.length} entries
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] text-left">
+              <thead className="surface-muted text-[11px] uppercase tracking-wider text-muted">
+                <tr>
+                  {["Trip", "Route", "Assignment", "Status"].map((column) => (
+                    <th key={column} className="px-6 py-3 font-semibold">
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {data.recentTrips.map((trip) => (
+                  <tr key={trip._id}>
+                    <td className="px-6 py-4 text-sm font-semibold">
+                      {trip.tripNumber}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted">
+                      {trip.source} → {trip.destination}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted">
+                      {trip.vehicle?.registrationNumber} · {trip.driver?.name}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="status-available inline-flex px-2 py-1 text-[11px] font-bold uppercase tracking-wide">
+                        {label(trip.status)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

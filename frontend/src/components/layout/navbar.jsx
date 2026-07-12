@@ -5,26 +5,29 @@ import {
   MdNotificationsNone,
   MdKeyboardArrowRight,
 } from "react-icons/md";
+import { useAuth } from "../../context/AuthContext";
 
 const ROUTE_MAP = {
   "": { title: "Dashboard", breadcrumb: ["Home", "Dashboard"] },
-  vehicles: { title: "Vehicles", breadcrumb: ["Home", "Vehicles"] },
+  vehicles: { title: "Fleet", breadcrumb: ["Home", "Fleet"] },
   drivers: { title: "Drivers", breadcrumb: ["Home", "Drivers"] },
   trips: { title: "Trips", breadcrumb: ["Home", "Trips"] },
   maintenance: { title: "Maintenance", breadcrumb: ["Home", "Maintenance"] },
-  "fuel-logs": { title: "Fuel Logs", breadcrumb: ["Home", "Fuel Logs"] },
-  expenses: { title: "Expenses", breadcrumb: ["Home", "Expenses"] },
-  reports: { title: "Reports", breadcrumb: ["Home", "Reports"] },
+  "fuel-logs": {
+    title: "Fuel & Expenses",
+    breadcrumb: ["Home", "Fuel & Expenses"],
+  },
+  reports: { title: "Analytics", breadcrumb: ["Home", "Analytics"] },
+  settings: { title: "Settings", breadcrumb: ["Home", "Settings"] },
 };
 
-const MOCK_USER = {
-  name: "Akash Rajput",
-  role: "Fleet Manager",
-};
+const roleLabel = (role) =>
+  role?.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 const Navbar = () => {
   const location = useLocation();
   const [searchValue, setSearchValue] = useState("");
+  const { user, logout } = useAuth();
   const notificationCount = 3;
 
   const segment = location.pathname.split("/")[1] || "";
@@ -33,18 +36,18 @@ const Navbar = () => {
     breadcrumb: ["Home", "Dashboard"],
   };
 
-  const initials = MOCK_USER.name
+  const initials = (user?.name || "User")
     .split(" ")
     .map((part) => part[0])
     .join("")
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-20 w-full bg-white shadow-sm">
+    <header className="sticky top-0 z-20 w-full border-b border-[var(--border)] bg-[var(--background)]">
       <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6">
         {/* Left: Title + Breadcrumb */}
         <div className="flex min-w-0 flex-col justify-center pl-12 md:pl-0">
-          <h1 className="truncate text-lg font-semibold text-slate-800">
+          <h1 className="font-display truncate text-2xl font-semibold">
             {title}
           </h1>
           <nav className="hidden sm:flex items-center text-xs text-slate-400">
@@ -82,7 +85,7 @@ const Navbar = () => {
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder="Search vehicles, drivers, trips..."
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition-colors focus:border-cyan-400 focus:bg-white focus:ring-2 focus:ring-cyan-100"
+              className="input-control rounded-md py-2 pl-10 pr-4 text-sm placeholder:text-[var(--text-muted)]"
             />
           </div>
         </div>
@@ -90,7 +93,7 @@ const Navbar = () => {
         {/* Right: Notifications + User */}
         <div className="flex items-center gap-3 md:gap-5 shrink-0">
           <button
-            className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+            className="relative p-2 text-muted hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]"
             aria-label="Notifications"
           >
             <MdNotificationsNone size={22} />
@@ -101,17 +104,23 @@ const Navbar = () => {
             )}
           </button>
 
-          <div className="flex items-center gap-3 border-l border-slate-200 pl-3 md:pl-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-500/10 text-sm font-semibold text-cyan-600">
+          <div className="flex items-center gap-3 border-l border-[var(--border)] pl-3 md:pl-5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent-soft)] text-sm font-semibold text-[var(--accent-strong)]">
               {initials}
             </div>
-            <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-sm font-medium text-slate-800">
-                {MOCK_USER.name}
+            <div className="hidden items-center gap-2 sm:flex">
+              <span className="text-sm font-medium">{user?.name}</span>
+              <span className="rounded-full border border-[var(--border-strong)] bg-[var(--surface-muted)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                {roleLabel(user?.role)}
               </span>
-              <span className="text-xs text-slate-400">{MOCK_USER.role}</span>
             </div>
           </div>
+          <button
+            onClick={logout}
+            className="hidden border-b border-[var(--accent)] px-1 py-1 text-xs font-medium text-[var(--accent-strong)] sm:block"
+          >
+            Sign out
+          </button>
         </div>
       </div>
 
@@ -127,7 +136,7 @@ const Navbar = () => {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder="Search..."
-            className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-cyan-400 focus:bg-white focus:ring-2 focus:ring-cyan-100"
+            className="input-control rounded-md py-2 pl-10 pr-4 text-sm placeholder:text-[var(--text-muted)]"
           />
         </div>
       </div>
